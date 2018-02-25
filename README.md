@@ -1,4 +1,4 @@
-﻿# Blender Debugger for VS Code
+﻿# Blender Debugger for VS Code (and Visual Studio)
 
 Inspired by [Blender-VScode-Debugger](https://github.com/Barbarbarbarian/Blender-VScode-Debugger) which was itself inspired by this [remote_debugger](https://github.com/sybrenstuvel/random-blender-addons/blob/master/remote_debugger.py) for pycharm as explained in this [Blender Developer's Blog post](https://code.blender.org/2015/10/debugging-python-code-with-pycharm/). 
 
@@ -8,6 +8,7 @@ Since the VS Code one wasn't really well documented and it looked kind of dead, 
 Now it can:
 
 - Auto-detect where python is and auto set the path to ptvsd if installed.
+- Warn you if you installed the wrong ptvsd version (for VS Code, for Visual Studio it should still work)
 - Tell you when the debugger has actually attached.
 
 ![Image Showing VS Code side by side with Blender paused at a breakpoint. In the console, a "Debugger is Attached" Statement is printed.](./Example.png)
@@ -25,11 +26,12 @@ I have made a video (click the image below) for those who just started messing w
 
 ## Installing Python and Getting PTVSD
 
-Install Python 3 with pip and check add to PATH.
-   - If you already have python installed and you can run it from the command line (aka PATH is set), the addon should find it. It uses `where python` or `whereis python` or `which python` depending on the OS to determine where python is. I only have windows at the moment, so only that is tested, but it should work.
+Install Python 3 with pip and check add to PATH.<sup id="n1">[1](#f1)</sup>
+   - If you already have python installed and you can run it from the command line (aka PATH is set), the addon should find it. It uses `where python` or `whereis python` or `which python` depending on the OS to determine where python is and uses the first path given<sup id="n2">[2](#f2)</sup>.
 
 `pip install ptvsd==3.0.0`
-   - Newer versions do not work, you will just get an error in VS Code trying to connect. later versions aren't supported yet see [Debugging Python with VS Code](https://code.visualstudio.com/docs/python/debugging#_remote-debugging) and [#514](/Microsoft/vscode-python/issues/514).
+   - Newer versions will not work, the add-on will warn you in the console if the version is above 3.0.0. Later versions aren't supported yet in VS Code, and it will throw an error when trying to connect. See [Debugging Python with VS Code](https://code.visualstudio.com/docs/python/debugging#_remote-debugging) and [#514](/Microsoft/vscode-python/issues/514).
+   - For Visual Studio, later versions should work depending on the Visual Studio version. I have never used Visual Studio, but you can find more info on setting everything up here: [Remotely Debugging Python Code on Linux](https://docs.microsoft.com/en-us/visualstudio/python/debugging-python-code-on-remote-linux-machines#connection-troubleshooting). (it is not Linux specific)
 
 ## Setting up your Addon
 
@@ -65,9 +67,11 @@ Click `Debug: Start Debug Server for VS Code`. Note: you can only start the serv
 
 Open your addon folder (e.g. "C:\Code\Blender Stuff\addons\myaddon").
 
-Install the Python extension for VS Code if you haven't already.
+Install the Python extension for VS Code if you haven't already. For Visual Studio see [Installing Python Support](https://docs.microsoft.com/en-us/visualstudio/python/installing-python-support-in-visual-studio).
 
-Go to the Debugging tab and add a configuration. Pick Python. You'll want the configuration that looks like this, you can delete the rest. There's no need to change the defaults. 
+In the lower left ([see #3 here](https://code.visualstudio.com/docs/python/python-tutorial#_prerequisites)), VS Code should have auto detected your Python install and set it as the interpreter. For Visual Studio see [Managing Python Environments](https://docs.microsoft.com/en-us/visualstudio/python/managing-python-environments-in-visual-studio).
+
+Go to the Debugging tab and add a configuration. Pick Python. You'll want the configuration that looks like this, no need to change the defaults, you can delete the rest. 
 
 ```JSON
    {
@@ -100,6 +104,15 @@ Open the file in VS Code, connect to the debugging server, make a change and sav
 
 Now in Blender the text editor will show this little red button in the top left. Click that and reload the file. Then in `Text Editor > Properties` turn on `Live Edit` if you haven't already. Now to actually get Blender to detect any changes you made just type a single character (like add a space anywhere) and *then* it will detect your changes.
 
+# Troubleshooting
+
+- Check you installed the correct ptvsd version.
+- To determine whether the problem is on Blender's side or your editor's: Close Blender and download/copy this [test script](https://gist.github.com/AlansCodeLog/ff1b246a8e31938e1c3dbfdcbb90522f) and run it with Python then and try to connect to the server with your editor. If you're still getting problem's than the problem is with VS Code.
+   - Check your detected your Python install, or set it manually.
+   - For VS Code try reinstalling the VS Code Python extension.
+   
 # Notes
 
-The addon also detects python if PYTHONPATH is set (because Blender will add it to sys.path) or if you used the Python bundled with Blender to install ptvsd (but that's a bit of a pain because it doesn't have pip installed unless you want to install it manually).
+<a id="f1" href="#n1">1.</a> Technically, the add-on will work with Python 2 as well since it doesn't use Python itself, just the ptvsd package, so it doesn't really matter whether you installed it with Python 2 or 3 because the package is compatible with both. On the VS Code side though, the Python extension does need to know where Python is (though not ptvsd), but it still will connect if it's using Python 2, just IntelliSense recommendations the will be wrong.
+
+<a id="f2" href="#n2">2.</a> The addon also detects python if PYTHONPATH is set (because Blender will add it to sys.path) or if you used the Python bundled with Blender to install ptvsd (but that's a bit of a pain because it doesn't have pip installed unless you want to install it manually).
